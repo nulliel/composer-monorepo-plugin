@@ -1,0 +1,52 @@
+{
+    "name": "sribich/conductor",
+    "description": "A composer plugin for managing monorepos",
+    "type": "composer-plugin",
+    "license": "MIT",
+    "scripts": {
+        "deploy": "composer outdated --direct",
+        "test": "phpunit --strict-coverage --coverage-text=/tmp/test-coverage ./test/",
+        "check": [
+            "composer validate",
+            "composer check-platform-reqs",
+            "phpcs -s --extensions=php",
+            "psalm",
+            "@test"
+        ]
+    },
+    "autoload": {
+        "psr-4": {
+            "Conductor\\": "src"
+        },
+        "files": [
+            "src/Functional/composition.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Conductor\\Test\\": "test"
+        },
+        "files": [
+            "src/Functional/composition.php"
+        ]
+    },
+    "require": {
+        "php": "^7.4",
+        "composer-plugin-api": "^2.0",
+        "symfony/finder": "^5.0",
+        "tightenco/collect": "^7.6"
+    },
+    "require-dev": {
+        "composer/composer": "@dev",
+        "phpunit/phpunit": "^9.2",
+        "slevomat/coding-standard": "^6.3",
+        "squizlabs/php_codesniffer": "^3.5",
+        "vimeo/psalm": "@dev"
+    },
+    "extra": {
+        "class": "Conductor\\Composer\\Plugin"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
