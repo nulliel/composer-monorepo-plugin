@@ -40,7 +40,7 @@ final class BinaryInstaller
             $binFile = $file->withPath($binary);
 
             if (!$binFile->exists()) {
-                $this->package->getIO()->write(sprintf(
+                $this->package->getMonorepo()->getIO()->write(sprintf(
                     "<warning>Skipping installation of bin %s for package %s: file not found</warning>",
                     $binary,
                     $package->getName(),
@@ -55,7 +55,7 @@ final class BinaryInstaller
                     Silencer::call("chmod", $link->getPath(), 0777 & ~umask());
                 }
 
-                $this->package->getIO()->write(sprintf(
+                $this->package->getMonorepo()->getIO()->write(sprintf(
                     "    <warning>Skipped installation of bin %s for package %s: file already exists</warning>",
                     $binary,
                     $package->getName(),
@@ -99,7 +99,7 @@ final class BinaryInstaller
             $binFile = new File($binFile->getRealPath() . ".bat");
 
             if ($binFile->exists()) {
-                $this->package->getIO()->write(sprintf(
+                $this->package->getMonorepo()->getIO()->write(sprintf(
                     "    Skipped installation of bin %s.bat proxy for package %s: a .bat proxy was already installed",
                     $binary,
                     $package->getName(),
