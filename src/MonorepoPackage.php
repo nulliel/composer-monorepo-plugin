@@ -86,7 +86,7 @@ class MonorepoPackage extends CompletePackage
 
     public function dumpAutoloads(): void
     {
-        $this->composer->getAutoloadGenerator()->setDevMode($this->isDev());
+        $this->composer->getAutoloadGenerator()->setDevMode(true);
         $this->composer->getAutoloadGenerator()->dump(
             $this->composer->getConfig(),
             $this->composer->getRepositoryManager()->getLocalRepository(),
