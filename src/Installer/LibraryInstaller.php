@@ -39,7 +39,7 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
      */
     public function supports($packageType): bool
     {
-        return in_array($packageType, ["library", "symfony-bundle", "symfony-bridge", "symfony-pack", "infection-extension", "phpstan-extension"]);
+        return true;
     }
 
     public function isInstalled(InstalledRepositoryInterface $repository, PackageInterface $package): bool
