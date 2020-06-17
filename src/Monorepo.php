@@ -94,16 +94,10 @@ final class Monorepo extends MonorepoPackage
 
                 $manipulator = new JsonManipulator($package->getComposerFile()->read());
 
-                foreach ($lockTransaction->getNewLockPackages(true) as $lockPackage) {
-                    assert($lockPackage instanceof CompletePackage);
-
-                    // phpcs:ignore
-                    if ($package->hasPackage($lockPackage->getName())) {
-                        $version = $monorepoRepository->findPackage($lockPackage->getName(), "*")
-                            ? "*"
-                            : $lockPackage->getPrettyVersion();
-                        $manipulator->addLink("require-dev", $lockPackage->getName(), $version, true);
-                        $manipulator->removeSubNode("require", $lockPackage->getName());
+                foreach ($solver->getNewPackages() as $packageName => $constraint) {
+                    if ($package->hasPackage($packageName) || $package->inDirectory()) {
+                        $manipulator->addLink($addNode, $packageName, $constraint, true);
+                        $manipulator->removeSubNode($removeNode, $packageName);
                     }
                 }
 
@@ -117,10 +111,16 @@ final class Monorepo extends MonorepoPackage
                     }
                 }
 
-                foreach ($solver->getNewPackages() as $packageName => $constraint) {
-                    if ($package->hasPackage($packageName) || $package->inDirectory()) {
-                        $manipulator->addLink($addNode, $packageName, $constraint, true);
-                        $manipulator->removeSubNode($removeNode, $packageName);
+                foreach ($lockTransaction->getNewLockPackages(true) as $lockPackage) {
+                    assert($lockPackage instanceof CompletePackage);
+
+                    // phpcs:ignore
+                    if ($package->hasPackage($lockPackage->getName())) {
+                        $version = $monorepoRepository->findPackage($lockPackage->getName(), "*")
+                            ? "*"
+                            : $lockPackage->getPrettyVersion();
+                        $manipulator->addLink("require-dev", $lockPackage->getName(), $version, true);
+                        $manipulator->removeSubNode("require", $lockPackage->getName());
                     }
                 }
 

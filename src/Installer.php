@@ -64,6 +64,8 @@ final class Installer
         $composer->getInstallationManager()->execute($composer->getRepositoryManager()->getLocalRepository(), $localTransaction->getOperations(), $this->isDev);
 
         Collection::wrap($this->monorepo->getMonorepoRepository()->getPackages())->each(function (MonorepoPackage $package) use ($solver): void {
+            $package->reload();
+
             $packageSolver = new PackageSolver($package, $this->isDev, false);
             $solve         = $packageSolver->solve($solver->getNewPackages());
 
@@ -84,6 +86,8 @@ final class Installer
             if (!$solve->getOperations()) {
                 return;
             }
+
+            $this->monorepo->getIO()->write("<info>Installing dependencies from lockfile" . ($this->isDev ? " (including require-dev)" : "") . "</info>");
 
             $package->getComposer()->getInstallationManager()->execute($package->getComposer()->getRepositoryManager()->getLocalRepository(), $solve->getOperations(), $this->isDev);
 

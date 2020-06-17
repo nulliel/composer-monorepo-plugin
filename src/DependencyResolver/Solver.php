@@ -81,10 +81,6 @@ abstract class Solver
 
     protected function createRequest(): Request
     {
-        $this->isUpdate
-            ? $this->io->write("<info>Updating dependencies</info>")
-            : $this->io->write("<info>Verifying lockfile contents can be installed on current platform</info>");
-
         $locker = $this->package->getComposer()->getLocker();
         $lockedRepository = $locker && $locker->isLocked()
             ? $locker->getLockedRepository($this->isDev)

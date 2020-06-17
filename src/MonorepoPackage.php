@@ -84,14 +84,21 @@ class MonorepoPackage extends CompletePackage
         return true;
     }
 
+    public function reload()
+    {
+        $this->composer = $this->createComposer($this->monorepo->getIO());
+    }
+
     public function dumpAutoloads(): void
     {
-        $this->composer->getAutoloadGenerator()->setDevMode(true);
-        $this->composer->getAutoloadGenerator()->dump(
-            $this->composer->getConfig(),
-            $this->composer->getRepositoryManager()->getLocalRepository(),
-            $this->composer->getPackage(),
-            $this->composer->getInstallationManager(),
+        $composer = $this->createComposer($this->monorepo->getIO());
+
+        $composer->getAutoloadGenerator()->setDevMode(true);
+        $composer->getAutoloadGenerator()->dump(
+            $composer->getConfig(),
+            $composer->getRepositoryManager()->getLocalRepository(),
+            $composer->getPackage(),
+            $composer->getInstallationManager(),
             "composer",
             true,
             $this->getVendorDirectory()->dirname()->getRealPath(),
