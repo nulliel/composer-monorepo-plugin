@@ -83,10 +83,6 @@ final class Installer
 
             $solve = new LocalRepoTransaction($repository, $package->getComposer()->getRepositoryManager()->getLocalRepository());
 
-            if (!$solve->getOperations()) {
-                return;
-            }
-
             $this->monorepo->getIO()->write("<info>Installing dependencies from lockfile" . ($this->isDev ? " (including require-dev)" : "") . "</info>");
 
             $package->getComposer()->getInstallationManager()->execute($package->getComposer()->getRepositoryManager()->getLocalRepository(), $solve->getOperations(), $this->isDev);
