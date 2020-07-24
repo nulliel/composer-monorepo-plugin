@@ -12,8 +12,10 @@ use Composer\DependencyResolver\Request;
 use Composer\DependencyResolver\Solver as ComposerSolver;
 use Composer\DependencyResolver\SolverProblemsException;
 use Composer\IO\IOInterface;
+use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\RootAliasPackage;
+use Composer\Repository\ArrayRepository;
 use Composer\Repository\PlatformRepository;
 use Composer\Semver\Constraint\Constraint;
 use Conductor\Monorepo;
@@ -167,7 +169,7 @@ abstract class Solver
         $this->io->writeError("Analyzed " . count($pool) . " packages to resolve dependencies");
         $this->io->writeError("Analyzed " . $ruleSetSize . " rules to resolve dependencies");
 
-        $this->extractDevPackages();
+        $this->extractDevPackages($lockTransaction);
 
         $this->lockTransaction = $lockTransaction;
 
@@ -222,11 +224,35 @@ abstract class Solver
         }
     }
 
-    private function extractDevPackages(): void
+    private function extractDevPackages(LockTransaction $lockTransaction): void
     {
         if (!$this->package->getComposer()->getPackage()->getDevRequires()) {
             return;
         }
+
+        $resultRepo = new ArrayRepository([]);
+        $loader = new ArrayLoader(null, true);
+        $dumper = new ArrayDumper();
+
+        foreach ($lockTransaction->getNewLockPackages(false) as $package) {
+            $resultRepo->addPackage($loader->load($dumper->dump($package)));
+        }
+
+        $repositorySet = $this->createRepositorySet();
+        $request       = new Request();
+
+        foreach ($this->package->getComposer()->getPackage()->getRequires() as $link) {
+            $request->requireName($link->getTarget(), $link->getConstraint());
+        }
+
+        $repositorySet->addRepository($resultRepo);
+
+        $pool   = $repositorySet->createPoolWithAllPackages();
+        $solver = new ComposerSolver($this->getPolicy(), $pool, $this->io);
+
+        $nonDevTransaction = $solver->solve($request);
+
+        $lockTransaction->setNonDevPackages($nonDevTransaction);
 
         /*
         $resultRepo = new ArrayRepository([]);
