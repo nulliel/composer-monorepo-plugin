@@ -206,7 +206,7 @@ class MonorepoPackage extends CompletePackage
         $installationManager = new InstallationManager($loop, $io);
         $installationManager->addInstaller(new LibraryInstaller($this));
         $installationManager->addInstaller(new PluginInstaller($this));
-        
+
         $composer->setInstallationManager($installationManager);
 
         $composer->setAutoloadGenerator(new AutoloadGenerator($composer->getEventDispatcher(), $io));

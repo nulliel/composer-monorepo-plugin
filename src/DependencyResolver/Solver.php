@@ -238,8 +238,11 @@ abstract class Solver
             $resultRepo->addPackage($loader->load($dumper->dump($package)));
         }
 
-        $repositorySet = $this->createRepositorySet();
-        $request       = new Request();
+        $repositorySet = new RepositorySet($this->package, $this->getNewPackages(), $this->isDev, $this->isUpdate);
+        $repositorySet->addRepository($this->monorepo->getPlatformRepository());
+        $repositorySet->addRepository($this->monorepo->getMonorepoRepository());
+
+        $request = new Request();
 
         foreach ($this->package->getComposer()->getPackage()->getRequires() as $link) {
             $request->requireName($link->getTarget(), $link->getConstraint());
@@ -250,7 +253,16 @@ abstract class Solver
         $pool   = $repositorySet->createPoolWithAllPackages();
         $solver = new ComposerSolver($this->getPolicy(), $pool, $this->io);
 
-        $nonDevTransaction = $solver->solve($request);
+        try {
+            $nonDevTransaction = $solver->solve($request);
+        } catch (SolverProblemsException $e) {
+            $this->io->writeError("<error>Unable to find a compatible set of packages based on your non-dev requirements alone</error>");
+            $this->io->writeError("Your requirements can be resolved successfully when require-dev packages are present");
+            $this->io->writeError("You may need to move packages from require-dev or some of their dependencies to require");
+            $this->io->writeError($e->getPrettyString($repositorySet, $request, $pool, $this->io->isVerbose()));
+
+            return;
+        }
 
         $lockTransaction->setNonDevPackages($nonDevTransaction);
 
