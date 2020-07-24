@@ -37,12 +37,7 @@ final class Monorepo extends MonorepoPackage
 
         $monorepo->configureLockfile();
 
-        // if (function_exists('pcntl_async_signals')) {
-        //     pcntl_async_signals(true);
-        //     pcntl_signal(SIGINT, array($this, 'revertComposerFile'));
-        //     pcntl_signal(SIGTERM, array($this, 'revertComposerFile'));
-        //     pcntl_signal(SIGHUP, array($this, 'revertComposerFile'));
-        // }
+
 
         return $monorepo;
     }
@@ -94,18 +89,9 @@ final class Monorepo extends MonorepoPackage
 
                 $manipulator = new JsonManipulator($package->getComposerFile()->read());
 
-                foreach ($solver->getNewPackages() as $packageName => $constraint) {
-                    if ($package->hasPackage($packageName) || $package->inDirectory()) {
-                        $manipulator->addLink($addNode, $packageName, $constraint, true);
-                        $manipulator->removeSubNode($removeNode, $packageName);
-                    }
-                }
-
                 foreach ($lockTransaction->getNewLockPackages(false) as $lockPackage) {
                     if ($package->hasPackage($lockPackage->getName())) {
-                        $version = $monorepoRepository->findPackage($lockPackage->getName(), "*")
-                            ? "*"
-                            : $lockPackage->getPrettyVersion();
+                        $version = $monorepoRepository->findPackage($lockPackage->getName(), "*") ? "@dev" : $lockPackage->getPrettyVersion();
                         $manipulator->addLink("require", $lockPackage->getName(), $version, true);
                         $manipulator->removeSubNode("require-dev", $lockPackage->getName());
                     }
@@ -116,11 +102,16 @@ final class Monorepo extends MonorepoPackage
 
                     // phpcs:ignore
                     if ($package->hasPackage($lockPackage->getName())) {
-                        $version = $monorepoRepository->findPackage($lockPackage->getName(), "*")
-                            ? "*"
-                            : $lockPackage->getPrettyVersion();
+                        $version = $monorepoRepository->findPackage($lockPackage->getName(), "*") ? "@dev" : $lockPackage->getPrettyVersion();
                         $manipulator->addLink("require-dev", $lockPackage->getName(), $version, true);
                         $manipulator->removeSubNode("require", $lockPackage->getName());
+                    }
+                }
+
+                foreach ($solver->getNewPackages() as $packageName => $constraint) {
+                    if ($package->hasPackage($packageName) || $package->inDirectory()) {
+                        $manipulator->addLink($addNode, $packageName, $constraint, true);
+                        $manipulator->removeSubNode($removeNode, $packageName);
                     }
                 }
 
