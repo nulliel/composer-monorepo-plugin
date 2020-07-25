@@ -45,6 +45,9 @@ final class Installer
         $this->monorepo->writeLockfile($solver);
         $this->monorepo->writePackages($solver, $this->isDev);
 
+        // When updating, the installer must always install dev-mode dependencies.
+        $this->isDev = true;
+
         return $this->install($solver);
     }
 
