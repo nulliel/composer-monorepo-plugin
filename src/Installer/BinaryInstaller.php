@@ -79,7 +79,7 @@ final class BinaryInstaller
                 $this->filesystem->unlink($link);
             }
 
-            if (!file_exists($link . ".bat")) {
+            if (file_exists($link . ".bat")) {
                 $this->filesystem->unlink($link . ".bat");
             }
         });
