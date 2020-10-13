@@ -92,7 +92,7 @@ final class BinaryInstaller
 
     private function installBinary(File $packageFile, File $binFile, string $binary, PackageInterface $package): void
     {
-        if (substr($packageFile->getRealPath(), -4) !== ".bat") {
+        if (substr($packageFile->getPath(), -4) !== ".bat") {
             $this->installUnixBinary($packageFile, $binFile);
             Silencer::call("chmod", $binFile->getRealPath(), 0777 & ~umask());
 
