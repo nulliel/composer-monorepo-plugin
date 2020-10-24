@@ -1,7 +1,7 @@
 {
     "name": "sribich/conductor",
     "description": "A composer plugin for managing monorepos",
-    "version": "1.0.15",
+    "version": "1.0.16",
     "type": "composer-plugin",
     "license": "MIT",
     "scripts": {
