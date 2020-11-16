@@ -214,16 +214,16 @@ class MonorepoPackage extends CompletePackage
 
         $composer->setAutoloadGenerator(new \Composer\Autoload\AutoloadGenerator($composer->getEventDispatcher()));
 
-        $composer->setPluginManager(new PluginManager($io, $composer));
-        $composer->getPluginManager()->loadInstalledPlugins();
+        // $composer->setPluginManager(new PluginManager($io, $composer));
+        // $composer->getPluginManager()->loadInstalledPlugins();
 
         // Remove this plugin from the PluginManager to get rid of any infinite
         // loops that may occur.
-        foreach ($composer->getPluginManager()->getPlugins() as $plugin) {
-            if ($plugin instanceof Plugin) {
-                $composer->getPluginManager()->removePlugin($plugin);
-            }
-        }
+        // foreach ($composer->getPluginManager()->getPlugins() as $plugin) {
+        //     if ($plugin instanceof Plugin) {
+        //         $composer->getPluginManager()->removePlugin($plugin);
+        //     }
+        // }
 
         // Notify listeners to initialize plugins
         $initEvent = new Event(PluginEvents::INIT);
