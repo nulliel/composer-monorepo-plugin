@@ -71,7 +71,11 @@ class RepositorySet extends ComposerRepositorySet
             if ($constraint instanceof Link) {
                 $rootRequires[$require] = $constraint->getConstraint();
             } else {
-                $rootRequires[$require] = $constraint;
+                if (is_string($constraint)) {
+                    $rootRequires[$require] = new Constraint("=", $constraint);
+                } else {
+                    $rootRequires[$require] = $constraint;
+                }
             }
         }
 
