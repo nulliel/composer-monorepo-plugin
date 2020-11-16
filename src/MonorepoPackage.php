@@ -200,7 +200,7 @@ class MonorepoPackage extends CompletePackage
 
         // DownloadManager
         $composer->setDownloadManager(
-            $this->createDownloadManager($config, $httpDownloader, $io, $composer->getEventDispatcher()),
+            $this->createDownloadManager($config, $httpDownloader, $io, $composer->getEventDispatcher(), $processExecutor),
         );
 
         // Create a new installation
@@ -261,7 +261,8 @@ class MonorepoPackage extends CompletePackage
         Config $config,
         HttpDownloader $httpDownloader,
         IOInterface $io,
-        EventDispatcher $eventDispatcher
+        EventDispatcher $eventDispatcher,
+        ProcessExecutor $executor
     ): DownloadManager {
         $cache = $config->get("cache-files-ttl") > 0
             ? new Cache($io, $config->get("cache-files-dir"), "a-z0-9_./")
@@ -270,7 +271,6 @@ class MonorepoPackage extends CompletePackage
         $downloadManager = new DownloadManager($io);
         $downloadManager->setPreferDist(true);
 
-        $executor   = new ProcessExecutor($io);
         $filesystem = new Filesystem($executor);
 
         $downloadManager->setDownloader("git", new GitDownloader($io, $config, $executor, $filesystem));
