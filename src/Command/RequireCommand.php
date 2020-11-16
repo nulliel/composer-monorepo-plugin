@@ -7,13 +7,13 @@ use Composer\Package\Version\VersionParser;
 use Composer\Package\Version\VersionSelector;
 use Composer\Repository\RepositorySet;
 use Conductor\Installer;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Tightenco\Collect\Support\Collection;
 
 class RequireCommand extends BaseCommand
 {
@@ -31,13 +31,8 @@ class RequireCommand extends BaseCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        parent::execute($input, $output);
-
-        if (!$this->getMonorepo()->inPackage()) {
-            throw new RuntimeException(
-                "`composer require` may only be used within a package directory. This command will not create a package. If you would like to create a package run `composer new <packageName>`",
-            );
-        }
+        $this->getMonorepo()->inPackage()
+            ?: throw new RuntimeException("`composer require` may only be used within a package directory. This command will not create a package. If you would like to create a package run `composer new <packageName>`");
 
         $packages = $input->getArgument("packages");
 

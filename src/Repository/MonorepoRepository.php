@@ -8,7 +8,7 @@ use Composer\Repository\ArrayRepository;
 use Conductor\Io\File;
 use Conductor\Monorepo;
 use Conductor\MonorepoPackage;
-use Tightenco\Collect\Support\Collection;
+use Illuminate\Support\Collection;
 
 final class MonorepoRepository extends ArrayRepository
 {
@@ -53,6 +53,8 @@ final class MonorepoRepository extends ArrayRepository
             if (defined("GLOB_BRACE")) {
                 $flags |= GLOB_BRACE;
             }
+
+            $x = glob($path, $flags);
 
             return Collection::wrap(glob($path, $flags))
                 ->map(static fn($result) => rtrim(str_replace(DIRECTORY_SEPARATOR, "/", $result), "/"))

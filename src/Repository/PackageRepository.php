@@ -49,6 +49,10 @@ class PackageRepository extends WritableArrayRepository implements InstalledRepo
                 $packages = $packages["packages"];
             }
 
+            if (isset($data["dev-package-names"])) {
+                $this->setDevPackageNames($data["dev-package-names"]);
+            }
+
             if (!is_array($packages)) {
                 throw new UnexpectedValueException("Could not parse package list from the repository");
             }
@@ -60,10 +64,6 @@ class PackageRepository extends WritableArrayRepository implements InstalledRepo
 
         foreach ($packages as $packageData) {
             $package = $loader->load($packageData);
-
-            // if (!$this->package->getVendorDirectory()->withPath($package->getName())->getRealPath()) {
-            //     throw new LogicException("Could not find path");
-            // }
 
             $this->addPackage($package);
         }
@@ -81,8 +81,9 @@ class PackageRepository extends WritableArrayRepository implements InstalledRepo
     public function write($devMode, InstallationManager $installationManager): void
     {
         $data = [
-            "packages" => [],
-            "dev"      => $devMode,
+            "packages"          => [],
+            "dev"               => $devMode,
+            "dev-package-names" => [],
         ];
 
         $dumper = new ArrayDumper();
@@ -98,6 +99,10 @@ class PackageRepository extends WritableArrayRepository implements InstalledRepo
                 ? $fs->findShortestPath($repositoryDirectory, $fs->isAbsolutePath($path) ? $path : getcwd() . "/" . $path, true)
                 : null;
             $data["packages"][] = $packageArray;
+
+            if (in_array($package->getName(), $this->devPackageNames, true)) {
+                $data["dev-package-names"][] = $package->getName();
+            }
         }
 
         usort($data["packages"], static fn($a, $b) => $a["name"] <=> $b["name"]);

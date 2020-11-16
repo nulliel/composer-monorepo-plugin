@@ -12,7 +12,7 @@ use Conductor\Io\File;
 use Conductor\Io\NonexistentFile;
 use Conductor\Repository\MonorepoRepository;
 use Exception;
-use Tightenco\Collect\Support\Collection;
+use Illuminate\Support\Collection;
 
 final class Monorepo extends MonorepoPackage
 {
@@ -21,8 +21,8 @@ final class Monorepo extends MonorepoPackage
 
     public static function create(IOInterface $io): Monorepo
     {
-        $monorepo     = new Monorepo("__root__", "999999-dev", "999999-dev");
-        $monorepoRoot = $monorepo->findMonorepoRoot();
+        $monorepo     = new self("MonorepoRoot", "999999-dev", "999999-dev");
+        $monorepoRoot = self::findMonorepoRoot();
 
         $monorepo->setIO($io);
 
@@ -36,8 +36,6 @@ final class Monorepo extends MonorepoPackage
         $monorepo->monorepoRepository = new MonorepoRepository($monorepo);
 
         $monorepo->configureLockfile();
-
-
 
         return $monorepo;
     }
@@ -156,7 +154,7 @@ final class Monorepo extends MonorepoPackage
      * Searches up from the current directory to find the root
      * monorepo.json file for a given project.
      */
-    private function findMonorepoRoot(?File $searchDirectory = null): File
+    private static function findMonorepoRoot(?File $searchDirectory = null): File
     {
         $searchDirectory = $searchDirectory ?: new File(realpath("."));
         $monorepoFile    = $searchDirectory->withPath("monorepo.json");
@@ -171,7 +169,7 @@ final class Monorepo extends MonorepoPackage
             return new NonexistentFile();
         }
 
-        return $this->findMonorepoRoot($parentDirectory);
+        return self::findMonorepoRoot($parentDirectory);
     }
 
     //==================
@@ -192,9 +190,9 @@ final class Monorepo extends MonorepoPackage
         return $this->monorepoRepository;
     }
 
-    public function isMonorepo(): bool
+    public static function isMonorepo(): bool
     {
-        return $this->findMonorepoRoot()->exists();
+        return self::findMonorepoRoot()->exists();
     }
 
     public function inPackage(): bool

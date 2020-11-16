@@ -12,18 +12,13 @@ use Tightenco\Collect\Support\Collection;
 
 final class Installer
 {
-    private Monorepo $monorepo;
-
     private bool $isDev    = false;
     private bool $isUpdate = false;
 
     /** @var array<string> */
     private array $packages = [];
 
-    public function __construct(Monorepo $monorepo)
-    {
-        $this->monorepo = $monorepo;
-    }
+    public function __construct(private Monorepo $monorepo) {}
 
     public function run(): int
     {
@@ -33,6 +28,17 @@ final class Installer
             $this->monorepo->getIO()->write("<warning>No lock file found. Updating dependencies instead of installing from lock file</warning>");
             $this->isUpdate = true;
         }
+
+        /*
+        if ($this->dryRun) {
+            $this->verbose = true;
+            $this->runScripts = false;
+            $this->executeOperations = false;
+            $this->writeLock = false;
+            $this->dumpAutoloader = false;
+            $this->mockLocalRepositories($this->repositoryManager);
+        }
+        */
 
         $solver = new MonorepoSolver($this->monorepo, $this->isDev, $this->isUpdate);
         $solver->solve($this->packages);
@@ -119,3 +125,47 @@ final class Installer
         return $this;
     }
 }
+
+/*
+ * $lockedRepository = $this->locker->getLockedRepository(true);
+        foreach ($lockedRepository->getPackages() as $package) {
+            if (!$package instanceof CompletePackage || !$package->isAbandoned()) {
+                continue;
+            }
+
+            $replacement = is_string($package->getReplacementPackage())
+                ? 'Use ' . $package->getReplacementPackage() . ' instead'
+                : 'No replacement was suggested';
+
+            $this->io->writeError(
+                sprintf(
+                    "<warning>Package %s is abandoned, you should avoid using it. %s.</warning>",
+                    $package->getPrettyName(),
+                    $replacement
+                )
+            );
+        }
+
+        if ($this->dumpAutoloader) {
+            // write autoloader
+            if ($this->optimizeAutoloader) {
+                $this->io->writeError('<info>Generating optimized autoload files</info>');
+            } else {
+                $this->io->writeError('<info>Generating autoload files</info>');
+            }
+
+            $this->autoloadGenerator->setDevMode($this->devMode);
+            $this->autoloadGenerator->setClassMapAuthoritative($this->classMapAuthoritative);
+            $this->autoloadGenerator->setApcu($this->apcuAutoloader, $this->apcuAutoloaderPrefix);
+            $this->autoloadGenerator->setRunScripts($this->runScripts);
+            $this->autoloadGenerator->setIgnorePlatformRequirements($this->ignorePlatformReqs);
+            $this->autoloadGenerator->dump($this->config, $localRepo, $this->package, $this->installationManager, 'composer', $this->optimizeAutoloader);
+        }
+
+        if ($this->install && $this->executeOperations) {
+            // force binaries re-generation in case they are missing
+            foreach ($localRepo->getPackages() as $package) {
+                $this->installationManager->ensureBinariesPresence($package);
+            }
+        }
+ */

@@ -7,7 +7,7 @@ use Composer\DependencyResolver\LockTransaction;
 use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
 use Conductor\MonorepoPackage;
-use Tightenco\Collect\Support\Collection;
+use Illuminate\Support\Collection;
 
 final class MonorepoSolver extends Solver
 {

@@ -12,33 +12,32 @@ use Conductor\Command\RequireCommand;
 use Conductor\Monorepo;
 use Symfony\Component\Console\Input\ArgvInput;
 
-// phpcs:ignoreFile
-
 /**
  * The entry point of the composer plugin.
  *
  *   https://getcomposer.org/doc/articles/plugins.md
- *
  */
 final class Plugin implements PluginInterface
 {
+    // phpcs:ignore
     public function activate(Composer $composer, IOInterface $io): void
     {
         $application = $this->getApplication($io);
-        $monorepo    = Monorepo::create($io);
 
-        if (!$monorepo->isMonorepo()) {
+        if (!Monorepo::isMonorepo()) {
             return;
         }
 
-        $application->add(new InstallCommand($monorepo));
-        $application->add(new RequireCommand($monorepo));
+        $application->add(new InstallCommand());
+        $application->add(new RequireCommand());
     }
 
+    // phpcs:ignore
     public function deactivate(Composer $composer, IOInterface $io): void
     {
     }
 
+    // phpcs:ignore
     public function uninstall(Composer $composer, IOInterface $io): void
     {
     }
@@ -48,11 +47,11 @@ final class Plugin implements PluginInterface
         $backtrace = debug_backtrace();
 
         foreach ($backtrace as $trace) {
-            if (!isset($trace["object"]) || !isset($trace["args"][0])) {
+            if (!isset($trace["object"]) || !$trace["object"] instanceof Application) {
                 continue;
             }
 
-            if (!$trace["object"] instanceof Application || !$trace["args"][0] instanceof ArgvInput) {
+            if (!isset($trace["args"][0]) || !$trace["args"][0] instanceof ArgvInput) {
                 continue;
             }
 

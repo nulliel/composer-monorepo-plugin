@@ -51,6 +51,9 @@ use Conductor\Installer\PluginInstaller;
 use Conductor\Io\File;
 use Conductor\Repository\PackageRepository;
 
+/**
+ * Represents a project's composer.json or monorepo.json.
+ */
 class MonorepoPackage extends CompletePackage
 {
     private Composer $composer;
@@ -74,12 +77,7 @@ class MonorepoPackage extends CompletePackage
     //====================
     // Autoload Management
     //====================
-    /**
-     * TODO: Create a config that packages can configure to prevent dumping of autoloads.
-     *       Speeds up installs / updates when a repository contains many libraries that
-     *       do not need autoloads to function.
-     */
-    public function shouldDumpAutoloads(): bool
+    public function shouldDumpAutoload(): bool
     {
         return true;
     }
@@ -166,7 +164,9 @@ class MonorepoPackage extends CompletePackage
         $composer->setConfig($config);
 
         $packageConfig = $this->getComposerFile()->toJsonFile()->read();
-        $packageConfig["version"] = "1.0.0";
+        $packageConfig["version"] = ($this instanceof Monorepo)
+            ? $packageConfig["version"]
+            : $this->monorepo->getComposer()->getPackage()->getVersion();
 
         $packageConfig["dist"] = [
             "type" => "path",
@@ -209,8 +209,9 @@ class MonorepoPackage extends CompletePackage
 
         $composer->setInstallationManager($installationManager);
 
-        $composer->setAutoloadGenerator(new AutoloadGenerator($composer->getEventDispatcher(), $io));
         $composer->setArchiveManager($this->createArchiveManager($composer->getDownloadManager(), $loop));
+
+        $composer->setAutoloadGenerator(new \Composer\Autoload\AutoloadGenerator($composer->getEventDispatcher()));
 
         $composer->setPluginManager(new PluginManager($io, $composer));
         $composer->getPluginManager()->loadInstalledPlugins();
