@@ -278,14 +278,14 @@ class MonorepoPackage extends CompletePackage
         $downloadManager->setDownloader("fossil", new FossilDownloader($io, $config, $executor, $filesystem));
         $downloadManager->setDownloader("hg", new HgDownloader($io, $config, $executor, $filesystem));
         $downloadManager->setDownloader("perforce", new PerforceDownloader($io, $config));
-        $downloadManager->setDownloader("zip", new ZipDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache));
-        $downloadManager->setDownloader("rar", new RarDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache));
-        $downloadManager->setDownloader("tar", new TarDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache));
-        $downloadManager->setDownloader("gzip", new GzipDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache));
-        $downloadManager->setDownloader("xz", new XzDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache));
-        $downloadManager->setDownloader("phar", new PharDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache));
-        $downloadManager->setDownloader("file", new FileDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache));
-        $downloadManager->setDownloader("path", new PathDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache));
+        $downloadManager->setDownloader("zip", new ZipDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache, $filesystem, $executor));
+        $downloadManager->setDownloader("rar", new RarDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache, $filesystem, $executor));
+        $downloadManager->setDownloader("tar", new TarDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache, $filesystem, $executor));
+        $downloadManager->setDownloader("gzip", new GzipDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache, $filesystem, $executor));
+        $downloadManager->setDownloader("xz", new XzDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache, $filesystem, $executor));
+        $downloadManager->setDownloader("phar", new PharDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache, $filesystem, $executor));
+        $downloadManager->setDownloader("file", new FileDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache, $filesystem, $executor));
+        $downloadManager->setDownloader("path", new PathDownloader($io, $config, $httpDownloader, $eventDispatcher, $cache, $filesystem, $executor));
 
         return $downloadManager;
     }
