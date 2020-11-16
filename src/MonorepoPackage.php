@@ -173,8 +173,9 @@ class MonorepoPackage extends CompletePackage
             "url"  => $this->composerFile->dirname()->getPath(),
         ];
 
+        $processExecutor = new ProcessExecutor($io);
         $httpDownloader = Factory::createHttpDownloader($io, $config);
-        $loop           = new Loop($httpDownloader);
+        $loop           = new Loop($httpDownloader, $processExecutor);
 
         // The event dispatcher must use the new composer instance as it
         // requires its' `Package` instance.

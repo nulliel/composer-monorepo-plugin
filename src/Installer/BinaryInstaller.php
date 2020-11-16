@@ -9,7 +9,7 @@ use Composer\Util\ProcessExecutor;
 use Composer\Util\Silencer;
 use Conductor\Io\File;
 use Conductor\MonorepoPackage;
-use Tightenco\Collect\Support\Collection;
+use Illuminate\Support\Collection;
 
 final class BinaryInstaller
 {

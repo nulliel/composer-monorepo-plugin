@@ -8,7 +8,7 @@ use Composer\Repository\ArrayRepository;
 use Conductor\DependencyResolver\MonorepoSolver;
 use Conductor\DependencyResolver\PackageSolver;
 use Conductor\DependencyResolver\Solver;
-use Tightenco\Collect\Support\Collection;
+use Illuminate\Support\Collection;
 
 final class Installer
 {
