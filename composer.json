@@ -1,5 +1,5 @@
 {
-    "name": "sribich/conductors",
+    "name": "sribich/conductor",
     "description": "A composer plugin for managing monorepos",
     "version": "1.1.0",
     "type": "composer-plugin",
