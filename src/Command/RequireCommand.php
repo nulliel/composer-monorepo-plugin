@@ -46,7 +46,7 @@ class RequireCommand extends MonorepoCommand
 
         foreach ($requirements as $package => $constraint) {
             if ($monorepoRepository->findPackage($package, $constraint)) {
-                $requirements[$package] = "@internal";
+                $requirements[$package] = "@dev";
             }
 
             $versionParser->parseConstraints($constraint);

@@ -33,8 +33,6 @@ final class Plugin implements PluginInterface
             return;
         }
 
-        BasePackage::$stabilities["internal"] = 30;
-
         $application->add(new DumpAutoloadCommand($monorepo));
         $application->add(new InstallCommand($monorepo));
         $application->add(new RequireCommand($monorepo));
