@@ -30,14 +30,11 @@ final class DumpAutoloadCommand extends MonorepoCommand
                 continue;
             }
 
-            $installationManager = $package->getInstallationManager();
-            $localRepository     = $package->getLocalRepository();
-
             $autoloadGenerator = new AutoloadGenerator($this->monorepo->io, !$input->getOption("no-dev"));
 
-            $numberOfClasses = $autoloadGenerator->dump($package, "composer", true);
+            $numberOfClasses = $autoloadGenerator->dump($package);
 
-            $this->monorepo->io->write("<inro>Generated autoload files for package " . $package->getPrettyName() . " containing " . $numberOfClasses . " classes</info>");
+            $this->monorepo->io->write("<info>Generated autoload files for package " . $package->getPrettyName() . " containing " . $numberOfClasses . " classes</info>");
         }
 
         return 0;
