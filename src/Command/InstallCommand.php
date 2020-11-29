@@ -14,7 +14,7 @@ final class InstallCommand extends MonorepoCommand
     {
         $this
             ->setName("install")
-            ->setDescription("Installs project dependencies defined by composer.json")
+            ->setDescription("Installs project dependencies defined in composer.json")
             ->setDefinition([
                 new InputOption("no-dev", null, InputOption::VALUE_NONE, "Disables installation of require-dev packages."),
             ]);
@@ -22,12 +22,10 @@ final class InstallCommand extends MonorepoCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        parent::execute($input, $output);
-
         $installer = new Installer($this->monorepo);
 
-        return $installer
-            ->setDev(!$input->getOption("no-dev"))
-            ->run();
+        return $installer->run(
+            isDev: !$input->getOption("no-dev")
+        );
     }
 }

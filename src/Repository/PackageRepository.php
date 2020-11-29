@@ -24,7 +24,7 @@ class PackageRepository extends WritableArrayRepository implements InstalledRepo
 
     private File $installFile;
 
-    public function __construct(MonorepoPackage $package)
+    public function __construct(private MonorepoPackage $package)
     {
         parent::__construct();
 
@@ -66,7 +66,7 @@ class PackageRepository extends WritableArrayRepository implements InstalledRepo
             $package = $loader->load($packageData);
 
             $package->setDistType("path");
-            $package->setDistUrl($package->getTargetDir());
+            $package->setDistUrl($this->package->monorepo->getInstallationManager()->getInstallPath($package));
 
             $this->addPackage($package);
         }

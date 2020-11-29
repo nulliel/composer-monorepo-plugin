@@ -18,7 +18,7 @@ final class Installer
     /**
      * @param array<string> $packages
      */
-    public function run(array $packages, bool $isDev, bool $isUpdate = false): int
+    public function run(array $packages = [], bool $isDev = false, bool $isUpdate = false): int
     {
         if (!$isUpdate && !$this->monorepo->getLocker()->isLocked()) {
             $this->monorepo->io->write("<warning>No lock file found. Updating dependencies instead of installing from lock file</warning>");
