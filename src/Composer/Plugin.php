@@ -6,6 +6,7 @@ namespace Conductor\Composer;
 use Composer\Composer;
 use Composer\Console\Application;
 use Composer\IO\IOInterface;
+use Composer\Package\BasePackage;
 use Composer\Plugin\PluginInterface;
 use Conductor\Command\CreateMonorepoCommand;
 use Conductor\Command\DumpAutoloadCommand;
@@ -31,6 +32,8 @@ final class Plugin implements PluginInterface
             $application->add(new CreateMonorepoCommand());
             return;
         }
+
+        BasePackage::$stabilities["internal"] = 30;
 
         $application->add(new DumpAutoloadCommand($monorepo));
         $application->add(new InstallCommand($monorepo));
