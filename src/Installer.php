@@ -75,7 +75,7 @@ final class Installer
             $package->getInstallationManager()->execute($package->getLocalRepository(), $solve->getOperations(), $isDev);
 
             // if ($package->shouldDumpAutoloads()) {
-                 $package->dumpAutoloads();
+                 $package->dumpAutoloads($isDev);
             // }
         });
 

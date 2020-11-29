@@ -55,19 +55,16 @@ class MonorepoPackage extends CompletePackage
         return true;
     }
 
-    public function dumpAutoloads(): void
+    public function dumpAutoloads(bool $dev): void
     {
-        $autoload = new AutoloadGenerator();
-        $autoload->setDevMode(true);
-        $autoload->dump(
-            $this->monorepo->getConfig($this->io),
-            $this->getLocalRepository(),
-            $this,
-            $this->getInstallationManager(),
-            "composer",
-            true,
-            $this->getVendorDirectory()->dirname()->getRealPath(),
-        );
+        $installationManager = $this->getInstallationManager();
+        $localRepository     = $this->getLocalRepository();
+
+        $autoloadGenerator = new AutoloadGenerator($this->monorepo->io, $includeDev);
+
+        $numberOfClasses = $autoloadGenerator->dump($this, "composer", true);
+
+        $this->monorepo->io->write("<info>Generated autoload files for package " . $this->getPrettyName() . " containing " . $numberOfClasses . " classes</info>");
     }
 
     //====================
