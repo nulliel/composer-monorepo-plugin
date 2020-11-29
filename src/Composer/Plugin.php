@@ -7,6 +7,8 @@ use Composer\Composer;
 use Composer\Console\Application;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
+use Conductor\Command\CreateMonorepoCommand;
+use Conductor\Command\DumpAutoloadCommand;
 use Conductor\Command\InstallCommand;
 use Conductor\Command\RequireCommand;
 use Conductor\Monorepo;
@@ -23,13 +25,16 @@ final class Plugin implements PluginInterface
     public function activate(Composer $composer, IOInterface $io): void
     {
         $application = $this->getApplication($io);
+        $monorepo = new Monorepo($io);
 
-        if (!Monorepo::isMonorepo()) {
+        if (!Monorepo::inMonorepo()) {
+            $application->add(new CreateMonorepoCommand());
             return;
         }
 
-        $application->add(new InstallCommand());
-        $application->add(new RequireCommand());
+        $application->add(new DumpAutoloadCommand($monorepo));
+        $application->add(new InstallCommand($monorepo));
+        $application->add(new RequireCommand($monorepo));
     }
 
     // phpcs:ignore

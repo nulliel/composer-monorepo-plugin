@@ -8,8 +8,9 @@ use Composer\Util\Filesystem;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\Silencer;
 use Conductor\Io\File;
-use Conductor\MonorepoPackage;
+use Conductor\Package\MonorepoPackage;
 use Illuminate\Support\Collection;
+use Throwable;
 
 final class BinaryInstaller
 {
@@ -40,7 +41,7 @@ final class BinaryInstaller
             $binFile = $file->withPath($binary);
 
             if (!$binFile->exists()) {
-                $this->package->getMonorepo()->getIO()->write(sprintf(
+                $this->package->monorepo->io->write(sprintf(
                     "<warning>Skipping installation of bin %s for package %s: file not found</warning>",
                     $binary,
                     $package->getName(),
@@ -55,7 +56,7 @@ final class BinaryInstaller
                     Silencer::call("chmod", $link->getPath(), 0777 & ~umask());
                 }
 
-                $this->package->getMonorepo()->getIO()->write(sprintf(
+                $this->package->monorepo->io->write(sprintf(
                     "    <warning>Skipped installation of bin %s for package %s: file already exists</warning>",
                     $binary,
                     $package->getName(),
@@ -92,6 +93,8 @@ final class BinaryInstaller
 
     private function installBinary(File $packageFile, File $binFile, string $binary, PackageInterface $package): void
     {
+        $this->filesystem->ensureDirectoryExists($packageFile->dirname()->getPath());
+
         if (!$packageFile->getRealPath()) {
             $packageFile->write("");
         }
@@ -103,7 +106,7 @@ final class BinaryInstaller
             $binFile = new File($binFile->getRealPath() . ".bat");
 
             if ($binFile->exists()) {
-                $this->package->getMonorepo()->getIO()->write(sprintf(
+                $this->package->monorepo->io->write(sprintf(
                     "    Skipped installation of bin %s.bat proxy for package %s: a .bat proxy was already installed",
                     $binary,
                     $package->getName(),

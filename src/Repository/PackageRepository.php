@@ -11,7 +11,7 @@ use Composer\Repository\InvalidRepositoryException;
 use Composer\Repository\WritableArrayRepository;
 use Composer\Util\Filesystem;
 use Conductor\Io\File;
-use Conductor\MonorepoPackage;
+use Conductor\Package\MonorepoPackage;
 use Throwable;
 use UnexpectedValueException;
 
@@ -64,6 +64,9 @@ class PackageRepository extends WritableArrayRepository implements InstalledRepo
 
         foreach ($packages as $packageData) {
             $package = $loader->load($packageData);
+
+            $package->setDistType("path");
+            $package->setDistUrl($package->getTargetDir());
 
             $this->addPackage($package);
         }

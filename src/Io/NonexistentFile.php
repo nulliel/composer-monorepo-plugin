@@ -5,6 +5,8 @@ namespace Conductor\Io;
 
 // phpcs:ignoreFile
 
+use JetBrains\PhpStorm\Pure;
+
 final class NonexistentFile extends File
 {
     public function __construct()
@@ -17,7 +19,7 @@ final class NonexistentFile extends File
         return "";
     }
 
-    public function withPath(string $path)
+    #[Pure] public function withPath(string $path)
     {
         return $this;
     }

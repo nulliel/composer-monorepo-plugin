@@ -6,7 +6,7 @@ namespace Conductor\DependencyResolver;
 use Composer\DependencyResolver\LockTransaction;
 use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
-use Conductor\MonorepoPackage;
+use Conductor\Package\MonorepoPackage;
 use Illuminate\Support\Collection;
 
 final class MonorepoSolver extends Solver
@@ -25,7 +25,8 @@ final class MonorepoSolver extends Solver
         gc_collect_cycles();
         gc_disable();
 
-        $this->addNewPackages($packages);
+        $this->packages = $packages;
+
         $this->preparePackages();
 
         $this->doSolve();
@@ -38,9 +39,7 @@ final class MonorepoSolver extends Solver
 
     public function preparePackages(): void
     {
-        $activePackage = $this->getPackage()->getMonorepo()->getMonorepoRepository()->getActivePackage();
-
-        $activePackage = $activePackage ? $activePackage->getComposer()->getPackage() : null;
+        $activePackage = $this->monorepo->getCurrentPackage();
         $loader        = new ArrayLoader();
 
         $getCommand = $this->isDev() ? "getDevRequires" : "getRequires";
@@ -57,7 +56,7 @@ final class MonorepoSolver extends Solver
             );
         }
 
-        Collection::wrap($this->getPackage()->getMonorepo()->getMonorepoRepository()->getPackages())
+        Collection::wrap($this->getPackage()->monorepo->monorepoRepository->getPackages())
             ->map(function (MonorepoPackage $package) use ($getCommand, $setCommand, $links) {
                 $package->$setCommand(
                     Collection::wrap($package->$getCommand())
@@ -73,8 +72,8 @@ final class MonorepoSolver extends Solver
                 );
             });
 
-        $this->getPackage()->getMonorepo()->getComposer()->getPackage()->$setCommand(
-            Collection::wrap($this->getPackage()->getMonorepo()->getComposer()->getPackage()->$getCommand())
+        $this->getPackage()->$setCommand(
+            Collection::wrap($this->getPackage()->$getCommand())
                 ->filter(static fn($package) => !in_array($package->getTarget(), array_keys($links)))
                 ->merge($links)
                 ->toArray(),

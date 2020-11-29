@@ -10,9 +10,10 @@ use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Util\Filesystem;
 use Composer\Util\Platform;
 use Composer\Util\Silencer;
-use Conductor\MonorepoPackage;
+use Conductor\Package\MonorepoPackage;
 use InvalidArgumentException;
 use React\Promise\PromiseInterface;
+use function React\Promise\resolve;
 
 class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
 {
@@ -34,17 +35,14 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
     //====================
     // !InstallerInterface
     //====================
-    /**
-     * @inheritDoc
-     */
     public function supports($packageType): bool
     {
         return true;
     }
 
-    public function isInstalled(InstalledRepositoryInterface $repository, PackageInterface $package): bool
+    public function isInstalled(InstalledRepositoryInterface $repo, PackageInterface $package): bool
     {
-        if (!$repository->hasPackage($package)) {
+        if (!$repo->hasPackage($package)) {
             return false;
         }
 
@@ -59,45 +57,40 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
 
     public function download(PackageInterface $package, ?PackageInterface $previousPackage = null): ?PromiseInterface
     {
-        return $this->package->getComposer()->getDownloadManager()->download(
-            $package,
-            $this->getInstallPath($package),
-            $previousPackage,
-        );
+        $downloadPath = $this->getInstallPath($package);
+
+        return $this->package->getDownloadManager()->download($package, $downloadPath, $previousPackage);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function prepare(
-        $type,
-        PackageInterface $package,
-        ?PackageInterface $previousPackage = null
-    ): ?PromiseInterface {
-        return $this->package->getComposer()->getDownloadManager()->prepare(
-            $type,
-            $package,
-            $this->getInstallPath($package),
-            $previousPackage,
-        );
+    public function prepare($type, PackageInterface $package, ?PackageInterface $previousPackage = null): ?PromiseInterface
+    {
+        $downloadPath = $this->getInstallPath($package);
+
+        return $this->package->getDownloadManager()->prepare($type, $package, $downloadPath, $previousPackage);
     }
 
-    public function install(InstalledRepositoryInterface $repository, PackageInterface $package): void
+    public function install(InstalledRepositoryInterface $repo, PackageInterface $package): void
     {
         $downloadPath = $this->getInstallPath($package);
 
         // Remove binaries if package folder was manually removed
-        if (!is_readable($downloadPath) && $repository->hasPackage($package)) {
-            $repository->removePackage($package);
+        if (!is_readable($downloadPath) && $repo->hasPackage($package)) {
             $this->removeBinaries($package);
         }
 
-        $this->installPackage($package);
-        $this->installBinaries($package);
+        $install = $this->installPackage($package);
 
-        if (!$repository->hasPackage($package)) {
-            $repository->addPackage(clone $package);
+        if (!$install instanceof PromiseInterface) {
+            $install = resolve();
         }
+
+        $install->then(function () use ($package, $repo) {
+            $this->installBinaries($package);
+
+            if (!$repo->hasPackage($package)) {
+                $repo->addPackage(clone $package);
+            }
+        });
     }
 
     /**
@@ -110,6 +103,7 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
         PackageInterface $previousPackage,
         PackageInterface $newPackage
     ) {
+        echo "update\n";
         if (!$repository->hasPackage($previousPackage)) {
             throw new InvalidArgumentException("Package is not installed: " . $previousPackage);
         }
@@ -132,6 +126,7 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
      */
     public function uninstall(InstalledRepositoryInterface $repository, PackageInterface $package): void
     {
+        echo "uninstall\n";
         if (!$repository->hasPackage($package)) {
             throw new InvalidArgumentException("Package is not installed: " . $package);
         }
@@ -157,7 +152,8 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
      */
     public function cleanup($type, PackageInterface $package, ?PackageInterface $prevPackage = null): ?PromiseInterface
     {
-        return $this->package->getComposer()->getDownloadManager()->cleanup(
+        return resolve();
+        return $this->package->getDownloadManager()->cleanup(
             $type,
             $package,
             $this->getInstallPath($package),
@@ -185,9 +181,11 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
     //==================
     // Code Modification
     //==================
-    private function installPackage(PackageInterface $package): void
+    private function installPackage(PackageInterface $package): ?PromiseInterface
     {
-        $this->package->getComposer()->getDownloadManager()->install($package, $this->getInstallPath($package));
+        $downloadPath = $this->getInstallPath($package);
+
+        return $this->package->getDownloadManager()->install($package, $downloadPath);
     }
 
     private function updatePackage(PackageInterface $previousPackage, PackageInterface $newPackage): void
@@ -210,12 +208,12 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
             $this->filesystem->rename($previousPath, $newPath);
         }
 
-        $this->package->getComposer()->getDownloadManager()->update($previousPackage, $newPackage, $newPath);
+        $this->package->getDownloadManager()->update($previousPackage, $newPackage, $newPath);
     }
 
     protected function removePackage(PackageInterface $package): void
     {
-        $this->package->getComposer()->getDownloadManager()->remove($package, $this->getInstallPath($package));
+        $this->package->getDownloadManager()->remove($package, $this->getInstallPath($package));
     }
 
     private function installBinaries(PackageInterface $package): void

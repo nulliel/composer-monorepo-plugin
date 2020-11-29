@@ -5,7 +5,7 @@ namespace Conductor\Installer;
 
 use Composer\Package\PackageInterface;
 use Composer\Repository\InstalledRepositoryInterface;
-use Conductor\MonorepoPackage;
+use Conductor\Package\MonorepoPackage;
 use React\Promise\PromiseInterface;
 use Throwable;
 use UnexpectedValueException;

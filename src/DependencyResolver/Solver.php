@@ -19,27 +19,27 @@ use Composer\Repository\ArrayRepository;
 use Composer\Repository\PlatformRepository;
 use Composer\Semver\Constraint\Constraint;
 use Conductor\Monorepo;
-use Conductor\MonorepoPackage;
+use Conductor\Package\MonorepoPackage;
 use Conductor\Repository\RepositorySet;
 
 abstract class Solver
 {
     private IOInterface $io;
-    private Monorepo $monorepo;
+    protected Monorepo $monorepo;
     private MonorepoPackage $package;
 
     private bool $isDev;
     private bool $isUpdate;
 
     /** @var array<string> */
-    private array $packages = [];
+    protected array $packages = [];
 
     private ?LockTransaction $lockTransaction = null;
 
     public function __construct(MonorepoPackage $package, bool $isDev, bool $isUpdate)
     {
-        $this->io       = $package->getMonorepo()->getIO();
-        $this->monorepo = $package->getMonorepo();
+        $this->io       = $package->monorepo->io;
+        $this->monorepo = $package->monorepo;
         $this->package  = $package;
 
         $this->isDev    = $isDev;
@@ -60,56 +60,36 @@ abstract class Solver
         $repositorySet = new RepositorySet($this->package, $this->getNewPackages(), $this->isDev, $this->isUpdate);
 
         if ($this->isUpdate) {
-            $repositorySet->addRepository($this->monorepo->getRepository());
+            $repositorySet->addRepository($this->package->getRepository());
         } else {
-            $repository = $this->monorepo->getComposer()->getLocker()->getLockedRepository($this->isDev);
-
-            // if ($isPackage) {
-            //     foreach ($repository->getPackages() as $lockPackage) {
-            //         if ($this->monorepo->getMonorepoRepository()->findPackage($lockPackage->getName(), "*")) {
-            //             $lockPackage->setDistType("path");
-            //             $lockPackage->setDistUrl(
-            //                 $this->monorepo->getVendorDirectory()->withPath($lockPackage->getName())->getPath(),
-            //             );
-            //         }
-            //     }
-            // }
-
-            $repositorySet->addRepository($repository);
+            $repositorySet->addRepository($this->monorepo->getLocker()->getLockedRepository($this->isDev));
         }
+
+        $repositorySet->allowInstalledRepositories(true);
 
         return $repositorySet;
     }
 
     protected function createRequest(): Request
     {
-        $locker = $this->package->getComposer()->getLocker();
-        $lockedRepository = $locker && $locker->isLocked()
+        $locker = $this->monorepo->getLocker();
+        $lockedRepository = $locker->isLocked()
             ? $locker->getLockedRepository($this->isDev)
             : null;
 
         if ($lockedRepository && !$locker->isFresh()) {
             $this->io->write(
-                // phpcs:ignore
                 "<warning>The lockfile is not up to date with the latest changes in monorepo.json. It is recommended you run `composer update`.</warning>",
             );
         }
 
         $request = new Request($lockedRepository);
-        $package = $this->package->getComposer()->getPackage();
-
-        // $request->setUpdateAllowList($this->packages, Request::UPDATE_LISTED_WITH_TRANSITIVE_DEPS);
-
-        if ($package instanceof RootAliasPackage) {
-            $request->fixPackage($package->getAliasOf(), false);
-        } else {
-            $request->fixPackage($package, false);
-        }
+        $request->fixPackage($this->package);
 
         // Mark platform packages as installed so the solver does
         // not complain when trying to upgrade these
         foreach ($this->monorepo->getPlatformRepository()->getPackages() as $fixedPackage) {
-            $request->fixPackage($fixedPackage, false);
+            $request->fixPackage($fixedPackage);
         }
 
         if (!$this->isUpdate && $lockedRepository) {
@@ -117,7 +97,7 @@ abstract class Solver
                 $request->requireName($lockedPackage->getName(), new Constraint("==", $lockedPackage->getVersion()));
             }
         } else {
-            $links = array_merge($package->getRequires(), $package->getDevRequires());
+            $links = array_merge($this->package->getRequires(), $this->package->getDevRequires());
 
             foreach ($links as $link) {
                 $request->requireName($link->getTarget(), $link->getConstraint());
@@ -226,7 +206,7 @@ abstract class Solver
 
     private function extractDevPackages(LockTransaction $lockTransaction): void
     {
-        if (!$this->package->getComposer()->getPackage()->getDevRequires()) {
+        if (!$this->package->getDevRequires()) {
             return;
         }
 
@@ -240,11 +220,11 @@ abstract class Solver
 
         $repositorySet = new RepositorySet($this->package, $this->getNewPackages(), $this->isDev, $this->isUpdate);
         $repositorySet->addRepository($this->monorepo->getPlatformRepository());
-        $repositorySet->addRepository($this->monorepo->getMonorepoRepository());
+        $repositorySet->addRepository($this->monorepo->monorepoRepository);
 
         $request = new Request();
 
-        foreach ($this->package->getComposer()->getPackage()->getRequires() as $link) {
+        foreach ($this->package->getRequires() as $link) {
             $request->requireName($link->getTarget(), $link->getConstraint());
         }
 
@@ -326,14 +306,6 @@ abstract class Solver
         }
 
         return $platformRequirements;
-    }
-
-    /**
-     * @param array<MonorepoPackage> $packages
-     */
-    public function addNewPackages(array $packages): void
-    {
-        $this->packages = array_merge($packages, $this->packages);
     }
 
     /**

@@ -1,7 +1,7 @@
 {
     "name": "sribich/conductor",
     "description": "A composer plugin for managing monorepos",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "type": "composer-plugin",
     "license": "MIT",
     "scripts": {
@@ -32,7 +32,8 @@
         ]
     },
     "require": {
-        "php": "^7.4 | ^8.0",
+        "php": "^8.0",
+        "ext-json": "*",
         "composer-plugin-api": "^2.0",
         "illuminate/collections": "^v8.0",
         "symfony/finder": "^5.0"

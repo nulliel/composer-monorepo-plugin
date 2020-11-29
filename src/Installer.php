@@ -8,74 +8,52 @@ use Composer\Repository\ArrayRepository;
 use Conductor\DependencyResolver\MonorepoSolver;
 use Conductor\DependencyResolver\PackageSolver;
 use Conductor\DependencyResolver\Solver;
+use Conductor\Package\MonorepoPackage;
 use Illuminate\Support\Collection;
 
 final class Installer
 {
-    private bool $isDev    = false;
-    private bool $isUpdate = false;
-
-    /** @var array<string> */
-    private array $packages = [];
-
     public function __construct(private Monorepo $monorepo) {}
 
-    public function run(): int
+    /**
+     * @param array<string> $packages
+     */
+    public function run(array $packages, bool $isDev, bool $isUpdate = false): int
     {
-        $composer = $this->monorepo->getComposer();
-
-        if (!$this->isUpdate && !$composer->getLocker()->isLocked()) {
-            $this->monorepo->getIO()->write("<warning>No lock file found. Updating dependencies instead of installing from lock file</warning>");
-            $this->isUpdate = true;
+        if (!$isUpdate && !$this->monorepo->getLocker()->isLocked()) {
+            $this->monorepo->io->write("<warning>No lock file found. Updating dependencies instead of installing from lock file</warning>");
+            $isUpdate = true;
         }
 
-        /*
-        if ($this->dryRun) {
-            $this->verbose = true;
-            $this->runScripts = false;
-            $this->executeOperations = false;
-            $this->writeLock = false;
-            $this->dumpAutoloader = false;
-            $this->mockLocalRepositories($this->repositoryManager);
-        }
-        */
+        $solver = new MonorepoSolver($this->monorepo, $isDev, $isUpdate);
+        $solver->solve($packages);
 
-        $solver = new MonorepoSolver($this->monorepo, $this->isDev, $this->isUpdate);
-        $solver->solve($this->packages);
-
-        return $this->isUpdate ? $this->update($solver) : $this->install($solver);
+        return $isUpdate ? $this->update($solver, $isDev) : $this->install($solver, $isDev);
     }
 
-    private function update(Solver $solver): int
+    private function update(Solver $solver, bool $isDev): int
     {
         $this->monorepo->writeLockfile($solver);
-        $this->monorepo->writePackages($solver, $this->isDev);
+        $this->monorepo->writePackages($solver, $isDev);
 
-        // When updating, the installer must always install dev-mode dependencies.
-        $this->isDev = true;
-
-        return $this->install($solver);
+        return $this->install($solver, $isDev);
     }
 
-    private function install(Solver $solver): int
+    private function install(Solver $solver, bool $isDev): int
     {
-        $this->monorepo->getIO()->write("<info>Installing dependencies from lockfile" . ($this->isDev ? " (including require-dev)" : "") . "</info>");
+        $this->monorepo->io?->write("<info>Installing dependencies from lockfile" . ($isDev ? " (including require-dev)" : "") . "</info>");
 
-        $composer = $this->monorepo->getComposer();
+        $lockedRepository = $this->monorepo->getLocker()->getLockedRepository($isDev);
+        $localTransaction = new LocalRepoTransaction($lockedRepository, $this->monorepo->getRepositoryManager()->getLocalRepository());
 
-        $lockedRepository = $composer->getLocker()->getLockedRepository($this->isDev);
-        $localTransaction = new LocalRepoTransaction($lockedRepository, $composer->getRepositoryManager()->getLocalRepository());
-
-        if (!$localTransaction->getOperations()) {
-            $this->monorepo->getIO()->write("Nothing to install, update, or remove");
+        if (count($localTransaction->getOperations()) === 0) {
+            $this->monorepo->io?->write("Nothing to install, update, or remove");
+        } else {
+            $this->monorepo->getInstallationManager()->execute($this->monorepo->getRepositoryManager()->getLocalRepository(), $localTransaction->getOperations(), $isDev);
         }
 
-        $composer->getInstallationManager()->execute($composer->getRepositoryManager()->getLocalRepository(), $localTransaction->getOperations(), $this->isDev);
-
-        Collection::wrap($this->monorepo->getMonorepoRepository()->getPackages())->each(function (MonorepoPackage $package) use ($solver): void {
-            $package->reload();
-
-            $packageSolver = new PackageSolver($package, $this->isDev, false);
+        Collection::wrap($this->monorepo->monorepoRepository->getPackages())->each(function (MonorepoPackage $package) use ($solver, $isDev): void {
+            $packageSolver = new PackageSolver($package, $isDev, false);
             $solve         = $packageSolver->solve($solver->getNewPackages());
 
             $repository = new ArrayRepository();
@@ -84,45 +62,24 @@ final class Installer
                 $repository->addPackage(clone $lockPackage);
             }
 
-            if ($this->isDev) {
+            if ($isDev) {
                 foreach ($solve->getNewLockPackages(true, true) as $lockPackage) {
                     $repository->addPackage(clone $lockPackage);
                 }
             }
 
-            $solve = new LocalRepoTransaction($repository, $package->getComposer()->getRepositoryManager()->getLocalRepository());
+            $solve = new LocalRepoTransaction($repository, $package->getRepositoryManager()->getLocalRepository());
 
-            $this->monorepo->getIO()->write("<info>Installing dependencies from lockfile" . ($this->isDev ? " (including require-dev)" : "") . "</info>");
+            $this->monorepo->io->write("<info>Installing dependencies from lockfile" . ($isDev ? " (including require-dev)" : "") . "</info>");
 
-            $package->getComposer()->getInstallationManager()->execute($package->getComposer()->getRepositoryManager()->getLocalRepository(), $solve->getOperations(), $this->isDev);
+            $package->getInstallationManager()->execute($package->getLocalRepository(), $solve->getOperations(), $isDev);
 
-            if ($package->shouldDumpAutoloads()) {
-                $package->dumpAutoloads();
-            }
+            // if ($package->shouldDumpAutoloads()) {
+                 $package->dumpAutoloads();
+            // }
         });
 
         return 0;
-    }
-
-    //==================
-    // Getters & Setters
-    //==================
-    public function setDev(bool $isDev): self
-    {
-        $this->isDev = $isDev;
-
-        return $this;
-    }
-
-    /**
-     * @param array<string> $packages
-     */
-    public function setPackages(array $packages): self
-    {
-        $this->packages = $packages;
-        $this->isUpdate = true;
-
-        return $this;
     }
 }
 

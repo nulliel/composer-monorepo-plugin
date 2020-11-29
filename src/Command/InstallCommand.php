@@ -8,7 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class InstallCommand extends BaseCommand
+final class InstallCommand extends MonorepoCommand
 {
     protected function configure(): void
     {
@@ -24,7 +24,7 @@ final class InstallCommand extends BaseCommand
     {
         parent::execute($input, $output);
 
-        $installer = new Installer($this->getMonorepo());
+        $installer = new Installer($this->monorepo);
 
         return $installer
             ->setDev(!$input->getOption("no-dev"))
