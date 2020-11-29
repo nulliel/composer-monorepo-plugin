@@ -155,7 +155,7 @@ declare(strict_types = 1);
 
 require_once $autoloadDirectory . '/autoload_real.php';
 
-return ConductorAutoloader::init();
+return ConductorAutoloader::getLoader();
 
 AUTOLOAD;
     }
