@@ -28,18 +28,18 @@ final class Installer
         $solver = new MonorepoSolver($this->monorepo, $isDev, $isUpdate);
         $solver->solve($packages);
 
-        return $isUpdate ? $this->update($solver, $isDev) : $this->install($solver, $isDev);
+        return $isUpdate ? $this->update($solver, $isDev, $isUpdate) : $this->install($solver, $isDev, $isUpdate);
     }
 
-    private function update(Solver $solver, bool $isDev): int
+    private function update(Solver $solver, bool $isDev, bool $isUpdate): int
     {
         $this->monorepo->writeLockfile($solver);
         $this->monorepo->writePackages($solver, $isDev);
 
-        return $this->install($solver, $isDev);
+        return $this->install($solver, $isDev, $isUpdate);
     }
 
-    private function install(Solver $solver, bool $isDev): int
+    private function install(Solver $solver, bool $isDev, bool $isUpdate): int
     {
         $this->monorepo->io?->write("<info>Installing dependencies from lockfile" . ($isDev ? " (including require-dev)" : "") . "</info>");
 
@@ -52,8 +52,8 @@ final class Installer
             $this->monorepo->getInstallationManager()->execute($this->monorepo->getRepositoryManager()->getLocalRepository(), $localTransaction->getOperations(), $isDev);
         }
 
-        Collection::wrap($this->monorepo->monorepoRepository->getPackages())->each(function (MonorepoPackage $package) use ($solver, $isDev): void {
-            $packageSolver = new PackageSolver($package, $isDev, false);
+        Collection::wrap($this->monorepo->monorepoRepository->getPackages())->each(function (MonorepoPackage $package) use ($solver, $isDev, $isUpdate): void {
+            $packageSolver = new PackageSolver($package, $isDev, $isUpdate);
             $solve         = $packageSolver->solve($solver->getNewPackages());
 
             $repository = new ArrayRepository();
