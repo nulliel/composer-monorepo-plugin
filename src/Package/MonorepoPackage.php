@@ -179,6 +179,7 @@ class MonorepoPackage extends CompletePackage
     {
         $this->monorepo = $monorepo;
     }
+
     public function getDirectory(): File
     {
         return $this->composerFile->dirname();

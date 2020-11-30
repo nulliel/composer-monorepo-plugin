@@ -10,6 +10,7 @@ use Composer\Installer\InstallationManager;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonManipulator;
 use Composer\Package\CompletePackage;
+use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\Locker;
 use Composer\Repository\CompositeRepository;
 use Composer\Repository\PlatformRepository;
@@ -52,6 +53,14 @@ final class Monorepo extends MonorepoPackage
         if (!self::inMonorepo()) {
             return;
         }
+
+        $loader = new ArrayLoader(null, false);
+        $data = $this->composerFile->toJsonFile()->read();
+        $data["name"] = "__root__";
+        $package = $loader->load($data, MonorepoPackage::class);
+
+        $this->setRequires($package->getRequires());
+        $this->setDevRequires($package->getDevRequires());
 
         $this->monorepoRepository = new MonorepoRepository($this);
     }

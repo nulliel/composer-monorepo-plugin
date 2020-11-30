@@ -20,6 +20,8 @@ final class Installer
      */
     public function run(array $packages = [], bool $isDev = false, bool $isUpdate = false): int
     {
+        $isDev = $isUpdate ?: $isDev;
+
         if (!$isUpdate && !$this->monorepo->getLocker()->isLocked()) {
             $this->monorepo->io->write("<warning>No lock file found. Updating dependencies instead of installing from lock file</warning>");
             $isUpdate = true;
@@ -43,7 +45,7 @@ final class Installer
     {
         $this->monorepo->io?->write("<info>Installing dependencies from lockfile" . ($isDev ? " (including require-dev)" : "") . "</info>");
 
-        $lockedRepository = $this->monorepo->getLocker()->getLockedRepository($isDev);
+        $lockedRepository = $this->monorepo->getLocker()->getLockedRepository($isUpdate ?: $isDev);
         $localTransaction = new LocalRepoTransaction($lockedRepository, $this->monorepo->getRepositoryManager()->getLocalRepository());
 
         if (count($localTransaction->getOperations()) === 0) {

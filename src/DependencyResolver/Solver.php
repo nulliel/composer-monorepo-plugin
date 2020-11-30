@@ -57,7 +57,7 @@ abstract class Solver
             ? $this->io->write("<info>Loading composer repositories with package information</info>")
             : $this->io->write("<info>Verifying lockfile contents can be installed on current platform</info>");
 
-        $repositorySet = new RepositorySet($this->package, $this->getNewPackages(), $this->isDev, $this->isUpdate);
+        $repositorySet = new RepositorySet($this->package, $this->getNewPackages(), $this->isUpdate ?: $this->isDev, $this->isUpdate);
 
         if ($this->isUpdate) {
             $repositorySet->addRepository($this->package->getRepository());

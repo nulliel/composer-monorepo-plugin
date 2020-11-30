@@ -14,12 +14,12 @@ final class NonexistentFile extends File
         parent::__construct("");
     }
 
-    public function getPath()
+    public function getPath(): string
     {
         return "";
     }
 
-    #[Pure] public function withPath(string $path)
+    #[Pure] public function withPath(string $path): File
     {
         return $this;
     }
@@ -34,7 +34,7 @@ final class NonexistentFile extends File
         return false;
     }
 
-    public function dirname()
+    public function dirname(): File
     {
         return new File("");
     }
