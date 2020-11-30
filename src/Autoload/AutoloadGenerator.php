@@ -162,7 +162,7 @@ class ConductorAutoloader
 
     public static function loadClassLoader(\$class)
     {
-        if (\$class !== "Conductor\\Autoload\\ClassLoader") {
+        if (\$class === "Conductor\\\\Autoload\\\\ClassLoader") {
             require __DIR__ . '/ClassLoader.php';
         }
     }
