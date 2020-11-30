@@ -128,16 +128,6 @@ class AutoloadGenerator
             $classmap[$class] = $code;
         }
 
-        /*
-        $includeFilesFilePath = $targetDir.'/autoload_files.php';
-        if ($includeFilesFileContents = $this->getIncludeFilesFile($autoloads['files'], $filesystem, $basePath, $vendorPath, $vendorPathCode52, $appBaseDirCode)) {
-            $filesystem->filePutContentsIfModified($includeFilesFilePath, $includeFilesFileContents);
-        } elseif (file_exists($includeFilesFilePath)) {
-            unlink($includeFilesFilePath);
-        }
-        */
-        $includeFilesFileContents = "";
-
         $filesystem->filePutContentsIfModified("${vendorPath}/autoload.php", $this->getAutoloadFile($filesystem->findShortestPathCode($vendorPath, realpath($targetDir), true)));
         $filesystem->filePutContentsIfModified("${targetDir}/autoload_real.php", $this->getAutoloadRealFile());
         $filesystem->filePutContentsIfModified("${targetDir}/autoload_static.php", $this->getStaticFile($targetDir, $vendorPath, $basePath, $staticPhpVersion, $psr0Autoloads, $psr4Autoloads, $classmap, []));
@@ -187,12 +177,12 @@ class ConductorAutoloader
         }
 
         spl_autoload_register(array('ConductorAutoloader', 'loadClassLoader'), true, true);
-        self::\$loader = \$loader = new \\Composer\\Autoload\\ClassLoader();
+        self::\$loader = \$loader = new \\Conduictor\\Autoload\\ClassLoader();
         spl_autoload_unregister(array('ConductorAutoloader', 'loadClassLoader'));
 
             require __DIR__ . '/autoload_static.php';
 
-            call_user_func(\Composer\Autoload\ComposerStaticInit::getInitializer(\$loader));
+            call_user_func(\Conductor\Autoload\ConductorStaticAutoloader::getInitializer(\$loader));
         
         \$loader->setClassMapAuthoritative(true);
         \$loader->register(true);
@@ -227,7 +217,7 @@ declare(strict_types = 1);
 
 namespace Conductor\Autoload;
 
-class ConductorAutoloader
+class ConductorStaticAutoloader
 {
 
 HEADER;
