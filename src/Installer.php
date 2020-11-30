@@ -25,10 +25,10 @@ final class Installer
             $isUpdate = true;
         }
 
-        $solver = new MonorepoSolver($this->monorepo, $isDev, $isUpdate);
+        $solver = new MonorepoSolver($this->monorepo, $isUpdate ?: $isDev, $isUpdate);
         $solver->solve($packages);
 
-        return $isUpdate ? $this->update($solver, $isDev, $isUpdate) : $this->install($solver, $isDev, $isUpdate);
+        return $isUpdate ? $this->update($solver, $isDev, $isUpdate) : $this->install($solver, $isUpdate ?: $isDev, $isUpdate);
     }
 
     private function update(Solver $solver, bool $isDev, bool $isUpdate): int
@@ -36,7 +36,7 @@ final class Installer
         $this->monorepo->writeLockfile($solver);
         $this->monorepo->writePackages($solver, $isDev);
 
-        return $this->install($solver, $isDev, $isUpdate);
+        return $this->install($solver, $isUpdate ?: $isDev, $isUpdate);
     }
 
     private function install(Solver $solver, bool $isDev, bool $isUpdate): int
