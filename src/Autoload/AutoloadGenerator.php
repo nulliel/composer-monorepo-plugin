@@ -177,7 +177,7 @@ class ConductorAutoloader
         }
 
         spl_autoload_register(array('ConductorAutoloader', 'loadClassLoader'), true, true);
-        self::\$loader = \$loader = new \\Conduictor\\Autoload\\ClassLoader();
+        self::\$loader = \$loader = new \\Conductor\\Autoload\\ClassLoader();
         spl_autoload_unregister(array('ConductorAutoloader', 'loadClassLoader'));
 
             require __DIR__ . '/autoload_static.php';
