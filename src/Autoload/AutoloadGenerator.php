@@ -187,7 +187,7 @@ class ConductorAutoloader
         \$loader->setClassMapAuthoritative(true);
         \$loader->register(true);
         
-        \$includeFiles = Composer\Autoload\ComposerStaticInit::\$files;
+        \$includeFiles = \Conductor\Autoload\ConductorStaticAutoloader::\$files;
         
         foreach (\$includeFiles as \$fileIdentifier => \$file) {
             composerRequire(\$fileIdentifier, \$file);
@@ -274,7 +274,7 @@ HEADER;
 
             $file .= sprintf("    public static $%s = %s;\n\n", $prop, $value);
             if ('files' !== $prop) {
-                $initializer .= "            \$loader->$prop = ComposerStaticInit::\$$prop;\n";
+                $initializer .= "            \$loader->$prop = ConductorStaticAutoloader::\$$prop;\n";
             }
         }
 
