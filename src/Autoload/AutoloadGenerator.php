@@ -416,7 +416,7 @@ INITIALIZER;
                 continue;
             }
 
-            $installPath = $rootPackage->getInstallationManager()->getInstallPath($package);
+            $installPath = ($package === $rootPackage) ? "" : $rootPackage->getInstallationManager()->getInstallPath($package);
 
             foreach ($autoload[$type] as $namespace => $paths) {
                 foreach ((array)$paths as $path) {
@@ -549,29 +549,7 @@ EOF;
         }
         $path = $filesystem->normalizePath($path);
 
-        $baseDir = '';
-        if (strpos($path.'/', $vendorPath.'/') === 0) {
-            $path = substr($path, strlen($vendorPath));
-            $baseDir = '$vendorDir';
-
-            if ($path !== false) {
-                $baseDir .= " . ";
-            }
-        } else {
-            $path = $filesystem->normalizePath($filesystem->findShortestPath($basePath, $path, true));
-            if (!$filesystem->isAbsolutePath($path)) {
-                $baseDir = '$baseDir . ';
-                $path = '/' . $path;
-            }
-        }
-
-        if (strpos($path, '.phar') !== false) {
-            $baseDir = "'phar://' . " . $baseDir;
-        }
-
-        return "${vendorPath}${path}";
-
-        return $baseDir . (($path !== false) ? var_export($path, true) : "");
+        return $path;
     }
 
     protected function getFileIdentifier(PackageInterface $package, $path)
