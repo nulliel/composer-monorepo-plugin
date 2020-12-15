@@ -120,7 +120,7 @@ class AutoloadGenerator
             );
         }
 
-        $classmapAutoloads['Composer\\InstalledVersions'] = "\$vendorDir . '/composer/InstalledVersions.php',\n";
+        // $classmapAutoloads['Composer\\InstalledVersions'] = "\$vendorDir . '/composer/InstalledVersions.php',\n";
         ksort($classmapAutoloads);
 
         $classmap = [];
