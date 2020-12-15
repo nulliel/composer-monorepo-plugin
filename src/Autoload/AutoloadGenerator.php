@@ -134,6 +134,7 @@ class AutoloadGenerator
         $filesystem->filePutContentsIfModified("${targetDir}/autoload_static.php", $this->getStaticFile($targetDir, $vendorPath, $basePath, $staticPhpVersion, $psr0Autoloads, $psr4Autoloads, $classmap, []));
 
         $filesystem->safeCopy(__DIR__ . "/ClassLoader.php", $targetDir . "/ClassLoader.php");
+        $filesystem->safeCopy(__DIR__ . "/InstalledVersions.php", $targetDir . "/InstalledVersions.php");
 
         return count($classmap);
     }

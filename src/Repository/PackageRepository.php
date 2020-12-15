@@ -190,10 +190,9 @@ class PackageRepository extends WritableArrayRepository implements InstalledRepo
         ksort($versions);
 
         $fs->filePutContentsIfModified(dirname($repositoryDirectory) . '/installed.php', '<?php return '.var_export($versions, true).';'."\n");
-        $installedVersionsClass = file_get_contents(__DIR__.'/../InstalledVersions.php');
+        $installedVersionsClass = file_get_contents(dirname($repositoryDirectory).'/InstalledVersions.php');
         $installedVersionsClass = str_replace('private static $installed;', 'private static $installed = '.var_export($versions, true).';', $installedVersionsClass);
         $fs->filePutContentsIfModified(dirname($repositoryDirectory).'/InstalledVersions.php', $installedVersionsClass);
-
     }
 
     public function isFresh(): bool
