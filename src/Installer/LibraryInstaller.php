@@ -10,6 +10,7 @@ use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Util\Filesystem;
 use Composer\Util\Platform;
 use Composer\Util\Silencer;
+use Conductor\Monorepo;
 use Conductor\Package\MonorepoPackage;
 use InvalidArgumentException;
 use React\Promise\PromiseInterface;
@@ -59,12 +60,20 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
     {
         $downloadPath = $this->getInstallPath($package);
 
+        if (!$this->package instanceof Monorepo) {
+            return resolve();
+        }
+
         return $this->package->getDownloadManager()->download($package, $downloadPath, $previousPackage);
     }
 
     public function prepare($type, PackageInterface $package, ?PackageInterface $previousPackage = null): ?PromiseInterface
     {
         $downloadPath = $this->getInstallPath($package);
+
+        if (!$this->package instanceof Monorepo) {
+            return resolve();
+        }
 
         return $this->package->getDownloadManager()->prepare($type, $package, $downloadPath, $previousPackage);
     }
