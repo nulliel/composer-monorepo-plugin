@@ -52,6 +52,8 @@ final class Installer
             $this->monorepo->getInstallationManager()->execute($this->monorepo->getRepositoryManager()->getLocalRepository(), $localTransaction->getOperations(), $isDev);
         }
 
+        $this->monorepo->dumpAutoloads($isDev);
+
         Collection::wrap($this->monorepo->monorepoRepository->getPackages())->each(function (MonorepoPackage $package) use ($solver, $isDev, $isUpdate): void {
             $packageSolver = new PackageSolver($package, $isDev, $isUpdate);
             $solve         = $packageSolver->solve($solver->getNewPackages());

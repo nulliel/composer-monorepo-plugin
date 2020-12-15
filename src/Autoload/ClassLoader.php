@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Conductor\Autoload;
+namespace Composer\Autoload;
 
 /**
  * ClassLoader implements a PSR-0, PSR-4 and classmap class loader.

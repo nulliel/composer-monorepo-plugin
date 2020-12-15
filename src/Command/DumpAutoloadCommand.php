@@ -25,6 +25,9 @@ final class DumpAutoloadCommand extends MonorepoCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $autoloadGenerator = new AutoloadGenerator($this->monorepo->io, !$input->getOption("no-dev"));
+        $autoloadGenerator->dump($this->monorepo);
+
         foreach ($this->monorepo->monorepoRepository->getPackages() as $package) {
             if (!$package instanceof MonorepoPackage) {
                 continue;

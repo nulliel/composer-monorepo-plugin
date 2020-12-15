@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Conductor\Autoload;
 
+use Composer\Autoload\ClassLoader;
 use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
@@ -162,13 +163,13 @@ class ConductorAutoloader
 
     public static function loadClassLoader(\$class)
     {
-        if (\$class === "Conductor\\\\Autoload\\\\ClassLoader") {
+        if (\$class === "Composer\\\\Autoload\\\\ClassLoader") {
             require __DIR__ . '/ClassLoader.php';
         }
     }
 
     /**
-     * @return \Conductor\Autoload\ClassLoader
+     * @return \Composer\Autoload\ClassLoader
      */
     public static function getLoader()
     {
@@ -177,7 +178,7 @@ class ConductorAutoloader
         }
 
         spl_autoload_register(array('ConductorAutoloader', 'loadClassLoader'), true, true);
-        self::\$loader = \$loader = new \\Conductor\\Autoload\\ClassLoader();
+        self::\$loader = \$loader = new \\Composer\\Autoload\\ClassLoader();
         spl_autoload_unregister(array('ConductorAutoloader', 'loadClassLoader'));
 
             require __DIR__ . '/autoload_static.php';
@@ -217,6 +218,8 @@ declare(strict_types = 1);
 
 namespace Conductor\Autoload;
 
+use Composer\Autoload\ClassLoader;
+
 class ConductorStaticAutoloader
 {
 
@@ -249,7 +252,7 @@ HEADER;
         $absoluteAppBaseDirPharCode = ' => ' . substr(var_export(rtrim('phar://' . $basePath, '\\/') . '/', true), 0, -1);
 
         $initializer = '';
-        $prefix = "\0Conductor\Autoload\ClassLoader\0";
+        $prefix = "\0Composer\Autoload\ClassLoader\0";
         $prefixLen = strlen($prefix);
 
         $maps = array('files' => $fileAutoloads);
