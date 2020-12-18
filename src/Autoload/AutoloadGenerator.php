@@ -131,7 +131,7 @@ class AutoloadGenerator
 
         $filesystem->filePutContentsIfModified("${vendorPath}/autoload.php", $this->getAutoloadFile($filesystem->findShortestPathCode($vendorPath, realpath($targetDir), true)));
         $filesystem->filePutContentsIfModified("${targetDir}/autoload_real.php", $this->getAutoloadRealFile());
-        $filesystem->filePutContentsIfModified("${targetDir}/autoload_static.php", $this->getStaticFile($targetDir, $vendorPath, $basePath, $staticPhpVersion, $psr0Autoloads, $psr4Autoloads, $classmap, []));
+        $filesystem->filePutContentsIfModified("${targetDir}/autoload_static.php", $this->getStaticFile($targetDir, $vendorPath, $basePath, $staticPhpVersion, $psr0Autoloads, $psr4Autoloads, $classmap, $autoloads["files"]));
 
         $filesystem->safeCopy(__DIR__ . "/ClassLoader.php", $targetDir . "/ClassLoader.php");
 
