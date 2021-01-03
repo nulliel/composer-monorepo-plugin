@@ -125,7 +125,7 @@ final class Monorepo extends MonorepoPackage
         }
 
         if (!$this->composerFile->exists()) {
-            $io->writeError(sprintf("<error>Failed to load configurations from `%s`: File does not exist</error>", $monorepoFile->getPath()));
+            $io->writeError(sprintf("<error>Failed to load configurations from `%s`: File does not exist</error>", $this->composerFile->getPath()));
             exit(1);
         }
 
