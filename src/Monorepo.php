@@ -46,13 +46,13 @@ final class Monorepo extends MonorepoPackage
         $this->setMonorepo($this);
         $this->setComposerFile(self::findMonorepoRoot());
 
-        $version = $this->getConfig($io)->get("version");
-
-        parent::__construct("", $version, $version);
-
         if (!self::inMonorepo()) {
             return;
         }
+
+        $version = $this->getConfig($io)->get("version");
+
+        parent::__construct("", $version, $version);
 
         $loader = new ArrayLoader(null, false);
         $data = $this->composerFile->toJsonFile()->read();
