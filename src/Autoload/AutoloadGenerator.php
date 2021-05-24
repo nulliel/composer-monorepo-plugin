@@ -426,7 +426,7 @@ EOF;
      * @param array $autoloads see parseAutoloads return value
      * @return ClassLoader
      */
-    public function createLoader(array $autoloads)
+    public function createLoader(array $autoloads, $vendorDir = NULL)
     {
         $loader = new ClassLoader();
 
