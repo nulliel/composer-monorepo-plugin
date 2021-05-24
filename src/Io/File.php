@@ -24,7 +24,7 @@ class File
         return new JsonFile($this->path);
     }
 
-    public function dirname()
+    public function dirname(): File
     {
         return new File(dirname($this->path));
     }
@@ -50,7 +50,7 @@ class File
         return file_put_contents($this->getPath(), $content) !== false;
     }
 
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
     }
@@ -65,7 +65,7 @@ class File
         return realpath($this->path);
     }
 
-    public function withPath(string $path)
+    public function withPath(string $path): File
     {
         return new File($this->path . DIRECTORY_SEPARATOR . "$path");
     }

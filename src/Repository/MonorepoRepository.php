@@ -7,16 +7,20 @@ use Composer\Package\Loader\ArrayLoader;
 use Composer\Repository\ArrayRepository;
 use Conductor\Io\File;
 use Conductor\Monorepo;
-use Conductor\MonorepoPackage;
-use Tightenco\Collect\Support\Collection;
+use Conductor\Package\MonorepoPackage;
+use Illuminate\Support\Collection;
 
+/**
+ * The `MonorepoRepository' is a readonly repository containing
+ * the applications and libraries housed within the monorepo.
+ */
 final class MonorepoRepository extends ArrayRepository
 {
     public function __construct(Monorepo $monorepo)
     {
         parent::__construct();
 
-        $packageDirs = $monorepo->getPackageDirs();
+        $packageDirs = array_merge($monorepo->getApplicationDirectories(), $monorepo->getLibraryDirectories());
         $rootDir     = $monorepo->getDirectory();
 
         Collection::wrap($packageDirs)
@@ -25,19 +29,6 @@ final class MonorepoRepository extends ArrayRepository
             ->flatten()
             ->filter($this->_hasComposerJson())
             ->each($this->_loadPackage($monorepo));
-    }
-
-    public function getActivePackage(): ?MonorepoPackage
-    {
-        foreach ($this->packages as $package) {
-            assert($package instanceof MonorepoPackage);
-
-            if (realpath(getcwd()) === $package->getComposerFile()->dirname()->getRealPath()) {
-                return $package;
-            }
-        }
-
-        return null;
     }
 
     private function _getGlobPaths(File $rootDir): callable
@@ -53,6 +44,8 @@ final class MonorepoRepository extends ArrayRepository
             if (defined("GLOB_BRACE")) {
                 $flags |= GLOB_BRACE;
             }
+
+            $x = glob($path, $flags);
 
             return Collection::wrap(glob($path, $flags))
                 ->map(static fn($result) => rtrim(str_replace(DIRECTORY_SEPARATOR, "/", $result), "/"))
@@ -74,7 +67,7 @@ final class MonorepoRepository extends ArrayRepository
             $file = $packageDir->withPath("composer.json");
             $data = $file->toJsonFile()->read();
 
-            $data["version"] = "1.0.0";
+            $data["version"] = $monorepo->getVersion();
 
             $data["dist"] = [
                 "type"      => "path",
@@ -86,6 +79,7 @@ final class MonorepoRepository extends ArrayRepository
 
             $package->setComposerFile($file);
             $package->setMonorepo($monorepo);
+            $package->io = $monorepo->io;
 
             $this->addPackage($package);
         };

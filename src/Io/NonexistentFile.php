@@ -5,6 +5,8 @@ namespace Conductor\Io;
 
 // phpcs:ignoreFile
 
+use JetBrains\PhpStorm\Pure;
+
 final class NonexistentFile extends File
 {
     public function __construct()
@@ -12,12 +14,12 @@ final class NonexistentFile extends File
         parent::__construct("");
     }
 
-    public function getPath()
+    public function getPath(): string
     {
         return "";
     }
 
-    public function withPath(string $path)
+    #[Pure] public function withPath(string $path): File
     {
         return $this;
     }
@@ -32,7 +34,7 @@ final class NonexistentFile extends File
         return false;
     }
 
-    public function dirname()
+    public function dirname(): File
     {
         return new File("");
     }

@@ -12,9 +12,9 @@ class PackageSolver extends Solver
      */
     public function solve(array $packages): LockTransaction
     {
-        $this->getIO()->write("<info>Solving " . $this->getPackage()->getComposer()->getPackage()->getName() . "</info>");
+        $this->getIO()->write("<info>Solving " . $this->getPackage()->getName() . "</info>");
 
-        $this->addNewPackages($packages);
+        $this->packages = $packages;
         $this->doSolve();
 
         return $this->getLockTransaction();

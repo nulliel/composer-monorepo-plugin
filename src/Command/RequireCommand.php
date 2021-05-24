@@ -7,15 +7,15 @@ use Composer\Package\Version\VersionParser;
 use Composer\Package\Version\VersionSelector;
 use Composer\Repository\RepositorySet;
 use Conductor\Installer;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Tightenco\Collect\Support\Collection;
 
-class RequireCommand extends BaseCommand
+class RequireCommand extends MonorepoCommand
 {
     protected function configure(): void
     {
@@ -31,21 +31,18 @@ class RequireCommand extends BaseCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        parent::execute($input, $output);
-
-        if (!$this->getMonorepo()->inPackage()) {
-            throw new RuntimeException(
-                "`composer require` may only be used within a package directory. This command will not create a package. If you would like to create a package run `composer new <packageName>`",
-            );
+        if (!$this->monorepo->inPackage()) {
+            throw new RuntimeException("`composer require` may only be used within a package directory. This command will not create a package. If you would like to create a package run `composer new <packageName>`");
         }
 
         $packages = $input->getArgument("packages");
+        $isDev    = $input->getOption("dev");
 
-        $phpVersion   = $this->getMonorepo()->getRepository()->findPackage("php", "*")->getPrettyVersion();
+        $phpVersion = $this->monorepo->getRepository()->findPackage("php", "*")->getPrettyVersion();
         $requirements = $this->determineRequirements($packages, $phpVersion);
 
         $versionParser = new VersionParser();
-        $monorepoRepository = $this->getMonorepo()->getMonorepoRepository();
+        $monorepoRepository = $this->monorepo->monorepoRepository;
 
         foreach ($requirements as $package => $constraint) {
             if ($monorepoRepository->findPackage($package, $constraint)) {
@@ -55,16 +52,14 @@ class RequireCommand extends BaseCommand
             $versionParser->parseConstraints($constraint);
         }
 
-        $installer = new Installer($this->getMonorepo());
+        $installer = new Installer($this->monorepo);
 
-        return $installer
-            ->setDev($input->getOption("dev"))
-            ->setPackages($requirements)
-            ->run();
+        return $installer->run($requirements, $isDev, isUpdate: true);
     }
 
     /**
      * @param array<string> $requires
+     * @param string        $phpVersion
      *
      * @return array<string>
      */
@@ -78,17 +73,14 @@ class RequireCommand extends BaseCommand
                 $require["version"] = null;
             }
 
-            [
-                $name,
-                $version,
-            ] = $this->findBestVersionAndNameForPackage($require["name"], $require["version"], $phpVersion);
+            [$name, $version] = $this->findBestVersionAndNameForPackage($require["name"], $require["version"], $phpVersion);
 
             $require["name"] = $name;
 
             if (!$require["version"]) {
                 $require["version"] = $version;
 
-                $this->getMonorepo()->getIO()->write(sprintf(
+                $this->monorepo->io->write(sprintf(
                     "Using version <info>%s</info> for <info>%s</info>",
                     $require["version"],
                     $require["name"],
@@ -102,24 +94,23 @@ class RequireCommand extends BaseCommand
     }
 
     /**
-     * @return array<string>
+     * @param string  $packageName
+     * @param ?string $packageVersion
+     * @param ?string $phpVersion
      *
-     * @throws InvalidArgumentException
+     * @return array<string>
      */
-    private function findBestVersionAndNameForPackage(
-        string $packageName,
-        ?string $packageVersion,
-        ?string $phpVersion
-    ): array {
+    private function findBestVersionAndNameForPackage(string $packageName, ?string $packageVersion = null, ?string $phpVersion = null): array
+    {
         $repositorySet = new RepositorySet();
-        $repositorySet->addRepository($this->getMonorepo()->getRepository());
+        $repositorySet->addRepository($this->monorepo->getRepository());
 
         $versionSelector = new VersionSelector($repositorySet);
-        $package = $versionSelector->findBestCandidate($packageName, $packageVersion, "stable");
+        $package = $versionSelector->findBestCandidate($packageName, $packageVersion);
 
         if (!$package) {
             // Check whether the PHP version was the problem
-            if ($phpVersion && $versionSelector->findBestCandidate($packageName, $packageVersion, null)) {
+            if ($phpVersion && $versionSelector->findBestCandidate($packageName, $packageVersion, ignorePlatformReqs: true)) {
                 throw new InvalidArgumentException(sprintf(
                     "Package %s at version %s has a PHP requirement incompatible with your PHP version (%s)",
                     $packageName,
@@ -129,7 +120,7 @@ class RequireCommand extends BaseCommand
             }
 
             // Check whether the required version was the problem
-            if ($packageVersion && $versionSelector->findBestCandidate($packageName, null, $phpVersion)) {
+            if ($packageVersion && $versionSelector->findBestCandidate($packageName)) {
                 throw new InvalidArgumentException(sprintf(
                     "Could not find package %s in a version matching %s",
                     $packageName,
@@ -138,7 +129,7 @@ class RequireCommand extends BaseCommand
             }
 
             // Check whether the PHP version was the problem
-            if ($phpVersion && $versionSelector->findBestCandidate($packageName)) {
+            if ($phpVersion && $versionSelector->findBestCandidate($packageName, $packageVersion)) {
                 throw new InvalidArgumentException(sprintf(
                     "Could not find package %s in any version matching your PHP version (%s)",
                     $packageName,

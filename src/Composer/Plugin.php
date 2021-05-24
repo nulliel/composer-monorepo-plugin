@@ -6,39 +6,44 @@ namespace Conductor\Composer;
 use Composer\Composer;
 use Composer\Console\Application;
 use Composer\IO\IOInterface;
+use Composer\Package\BasePackage;
 use Composer\Plugin\PluginInterface;
+use Conductor\Command\CreateMonorepoCommand;
+use Conductor\Command\DumpAutoloadCommand;
 use Conductor\Command\InstallCommand;
 use Conductor\Command\RequireCommand;
 use Conductor\Monorepo;
 use Symfony\Component\Console\Input\ArgvInput;
 
-// phpcs:ignoreFile
-
 /**
  * The entry point of the composer plugin.
  *
  *   https://getcomposer.org/doc/articles/plugins.md
- *
  */
 final class Plugin implements PluginInterface
 {
+    // phpcs:ignore
     public function activate(Composer $composer, IOInterface $io): void
     {
         $application = $this->getApplication($io);
-        $monorepo    = Monorepo::create($io);
+        $monorepo = new Monorepo($io);
 
-        if (!$monorepo->isMonorepo()) {
+        if (!Monorepo::inMonorepo()) {
+            $application->add(new CreateMonorepoCommand());
             return;
         }
 
+        $application->add(new DumpAutoloadCommand($monorepo));
         $application->add(new InstallCommand($monorepo));
         $application->add(new RequireCommand($monorepo));
     }
 
+    // phpcs:ignore
     public function deactivate(Composer $composer, IOInterface $io): void
     {
     }
 
+    // phpcs:ignore
     public function uninstall(Composer $composer, IOInterface $io): void
     {
     }
@@ -48,11 +53,11 @@ final class Plugin implements PluginInterface
         $backtrace = debug_backtrace();
 
         foreach ($backtrace as $trace) {
-            if (!isset($trace["object"]) || !isset($trace["args"][0])) {
+            if (!isset($trace["object"]) || !$trace["object"] instanceof Application) {
                 continue;
             }
 
-            if (!$trace["object"] instanceof Application || !$trace["args"][0] instanceof ArgvInput) {
+            if (!isset($trace["args"][0]) || !$trace["args"][0] instanceof ArgvInput) {
                 continue;
             }
 

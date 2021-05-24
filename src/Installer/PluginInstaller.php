@@ -5,7 +5,7 @@ namespace Conductor\Installer;
 
 use Composer\Package\PackageInterface;
 use Composer\Repository\InstalledRepositoryInterface;
-use Conductor\MonorepoPackage;
+use Conductor\Package\MonorepoPackage;
 use React\Promise\PromiseInterface;
 use Throwable;
 use UnexpectedValueException;
@@ -56,7 +56,7 @@ final class PluginInstaller extends LibraryInstaller
         parent::install($repository, $package);
 
         try {
-            $this->package->getComposer()->getPluginManager()->registerPackage($package, true);
+            // $this->package->getComposer()->getPluginManager()->registerPackage($package, true);
         } catch (Throwable $e) {
             $this->package->getIO()->writeError(sprintf(
                 "Plugin initialization failed (%s), uninstalling plugin",
@@ -82,8 +82,8 @@ final class PluginInstaller extends LibraryInstaller
         parent::update($repository, $previousPackage, $newPackage);
 
         try {
-            $this->package->getComposer()->getPluginManager()->deactivatePackage($previousPackage);
-            $this->package->getComposer()->getPluginManager()->registerPackage($newPackage, true);
+            // $this->package->getComposer()->getPluginManager()->deactivatePackage($previousPackage);
+            // $this->package->getComposer()->getPluginManager()->registerPackage($newPackage, true);
         } catch (Throwable $e) {
             $this->package->getIO()->writeError(sprintf(
                 "Plugin initialization failed (%s), uninstalling plugin",
@@ -101,7 +101,7 @@ final class PluginInstaller extends LibraryInstaller
      */
     public function uninstall(InstalledRepositoryInterface $repository, PackageInterface $package): void
     {
-        $this->package->getComposer()->getPluginManager()->uninstallPackage($package);
+        // $this->package->getComposer()->getPluginManager()->uninstallPackage($package);
 
         parent::uninstall($repository, $package);
     }
